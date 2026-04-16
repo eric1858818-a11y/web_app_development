@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}預算控制 - 個人記帳簿{% endblock %}
+{% block content %}
+<h2 class="mb-4"><i class="bi bi-piggy-bank"></i> 預算控制</h2>
+
+<p class="text-muted">目前月份：{{ current_month }}</p>
+
+<!-- 預算進度 -->
+{% if budgets %}
+<div class="row mb-4">
+    {% for b in budgets %}
+    <div class="col-md-6 mb-3">
+        <div class="card shadow">
+            <div class="card-body">
+                <h6>{{ b.category }}</h6>
+                <p class="mb-1">預算：NT$ {{ "%.0f"|format(b.amount) }} ｜ 已花：NT$ {{ "%.0f"|format(b.spent) }}</p>
+                {% set pct = (b.spent / b.amount * 100) if b.amount > 0 else 0 %}
+                <div class="progress">
+                    <div class="progress-bar {{ 'bg-danger' if pct > 100 else 'bg-warning' if pct > 80 else 'bg-success' }}"
+                         style="width: {{ [pct, 100] | min }}%">
+                        {{ "%.0f"|format(pct) }}%
+                    </div>
+                </div>
+                {% if pct > 100 %}
+                <small class="text-danger mt-1 d-block">⚠️ 已超支！</small>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<p class="text-muted">尚未設定任何預算。</p>
+{% endif %}
+
+<!-- 設定預算 -->
+<div class="card shadow">
+    <div class="card-header"><h5 class="mb-0">新增 / 更新預算</h5></div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('expense.update_budget') }}">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label for="category" class="form-label">類別</label>
+                    <input type="text" class="form-control" id="category" name="category" placeholder="例如：餐飲、交通、All" required>
+                </div>
+                <div class="col-md-3">
+                    <label for="amount" class="form-label">預算上限</label>
+                    <input type="number" class="form-control" id="amount" name="amount" min="1" step="1" required>
+                </div>
+                <div class="col-md-3">
+                    <label for="month" class="form-label">月份</label>
+                    <input type="month" class="form-control" id="month" name="month" value="{{ current_month }}" required>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">儲存</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

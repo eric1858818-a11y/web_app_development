@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}帳戶管理 - 個人記帳簿{% endblock %}
+{% block content %}
+<h2 class="mb-4"><i class="bi bi-bank"></i> 帳戶管理</h2>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-white bg-info shadow">
+            <div class="card-body">
+                <h6 class="card-title">總資產</h6>
+                <h3>NT$ {{ "%.0f"|format(total_balance) }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 帳戶列表 -->
+<div class="card shadow mb-4">
+    <div class="card-body">
+        {% if accounts %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>帳戶名稱</th>
+                        <th>餘額</th>
+                        <th>建立時間</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for account in accounts %}
+                    <tr>
+                        <td><i class="bi bi-wallet2"></i> {{ account.name }}</td>
+                        <td class="{{ 'text-success' if account.balance >= 0 else 'text-danger' }}">
+                            NT$ {{ "%.0f"|format(account.balance) }}
+                        </td>
+                        <td>{{ account.created_at.strftime('%Y-%m-%d') if account.created_at else '-' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted text-center py-3">尚未建立任何帳戶。</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 新增帳戶 -->
+<div class="card shadow">
+    <div class="card-header"><h5 class="mb-0">新增帳戶</h5></div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('expense.add_account') }}">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label for="name" class="form-label">帳戶名稱</label>
+                    <input type="text" class="form-control" id="name" name="name" placeholder="例如：現金、中信銀行" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="balance" class="form-label">初始餘額</label>
+                    <input type="number" class="form-control" id="balance" name="balance" value="0" step="1">
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="bi bi-plus-circle"></i> 新增
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

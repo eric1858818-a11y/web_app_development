@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}歷史紀錄 - 個人記帳簿{% endblock %}
+{% block content %}
+<h2 class="mb-4"><i class="bi bi-clock-history"></i> 歷史紀錄</h2>
+
+<!-- 篩選 -->
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label for="month" class="form-label">月份篩選</label>
+                <input type="month" class="form-control" id="month" name="month" value="{{ selected_month or '' }}">
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> 篩選</button>
+                <a href="{{ url_for('expense.expense_history') }}" class="btn btn-outline-secondary">清除</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 紀錄列表 -->
+<div class="card shadow">
+    <div class="card-body">
+        {% if transactions %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>日期</th>
+                        <th>類型</th>
+                        <th>類別</th>
+                        <th>金額</th>
+                        <th>帳戶</th>
+                        <th>備註</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in transactions %}
+                    <tr>
+                        <td>{{ t.date }}</td>
+                        <td>
+                            {% if t.type == 'income' %}
+                                <span class="badge bg-success">收入</span>
+                            {% elif t.type == 'expense' %}
+                                <span class="badge bg-danger">支出</span>
+                            {% else %}
+                                <span class="badge bg-warning">轉帳</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ t.category }}</td>
+                        <td class="{% if t.type == 'income' %}text-success{% elif t.type == 'expense' %}text-danger{% endif %}">
+                            {% if t.type == 'income' %}+{% elif t.type == 'expense' %}-{% endif %}NT$ {{ "%.0f"|format(t.amount) }}
+                        </td>
+                        <td>{{ t.account.name if t.account else '-' }}</td>
+                        <td>{{ t.description or '-' }}</td>
+                        <td>
+                            <a href="{{ url_for('expense.edit_expense', item_id=t.id) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form method="POST" action="{{ url_for('expense.delete_expense', item_id=t.id) }}" class="d-inline"
+                                  onsubmit="return confirm('確定要刪除這筆紀錄嗎？')">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted text-center py-3">沒有找到任何紀錄。</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

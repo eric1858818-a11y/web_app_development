@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}總覽 - 個人記帳簿{% endblock %}
+{% block content %}
+<h2 class="mb-4"><i class="bi bi-speedometer2"></i> 總覽儀表板</h2>
+
+<!-- 摘要卡片 -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-success shadow">
+            <div class="card-body">
+                <h6 class="card-title"><i class="bi bi-arrow-down-circle"></i> 本月收入</h6>
+                <h3>NT$ {{ "%.0f"|format(monthly_income) }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-danger shadow">
+            <div class="card-body">
+                <h6 class="card-title"><i class="bi bi-arrow-up-circle"></i> 本月支出</h6>
+                <h3>NT$ {{ "%.0f"|format(monthly_expense) }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-primary shadow">
+            <div class="card-body">
+                <h6 class="card-title"><i class="bi bi-calculator"></i> 本月結餘</h6>
+                <h3>NT$ {{ "%.0f"|format(monthly_income - monthly_expense) }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info shadow">
+            <div class="card-body">
+                <h6 class="card-title"><i class="bi bi-wallet"></i> 總資產</h6>
+                <h3>NT$ {{ "%.0f"|format(total_balance) }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 快速新增按鈕 -->
+<div class="mb-4">
+    <a href="{{ url_for('expense.add_expense') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> 記一筆
+    </a>
+</div>
+
+<!-- 最近紀錄 -->
+<div class="card shadow">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-clock-history"></i> 最近紀錄</h5>
+    </div>
+    <div class="card-body">
+        {% if recent_transactions %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>日期</th>
+                        <th>類型</th>
+                        <th>類別</th>
+                        <th>金額</th>
+                        <th>帳戶</th>
+                        <th>備註</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in recent_transactions %}
+                    <tr>
+                        <td>{{ t.date }}</td>
+                        <td>
+                            {% if t.type == 'income' %}
+                                <span class="badge bg-success">收入</span>
+                            {% elif t.type == 'expense' %}
+                                <span class="badge bg-danger">支出</span>
+                            {% else %}
+                                <span class="badge bg-warning">轉帳</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ t.category }}</td>
+                        <td class="{% if t.type == 'income' %}text-success{% elif t.type == 'expense' %}text-danger{% endif %}">
+                            {% if t.type == 'income' %}+{% elif t.type == 'expense' %}-{% endif %}NT$ {{ "%.0f"|format(t.amount) }}
+                        </td>
+                        <td>{{ t.account.name if t.account else '-' }}</td>
+                        <td>{{ t.description or '-' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted text-center py-3">還沒有任何紀錄，趕快來記一筆吧！</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

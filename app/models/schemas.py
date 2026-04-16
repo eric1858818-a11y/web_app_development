@@ -4,32 +4,71 @@ from datetime import datetime
 db = SQLAlchemy()
 
 class BaseModel:
-    """提供基本的 CRUD 功能"""
+    """提供基本的 CRUD 功能（包含錯誤處理機制）"""
     
     @classmethod
     def create(cls, **kwargs):
-        obj = cls(**kwargs)
-        db.session.add(obj)
-        db.session.commit()
-        return obj
+        """
+        新增一筆記錄
+        :param kwargs: 表單或請求中對應模型各欄位的值
+        :return: 新建立的模型實例
+        """
+        try:
+            obj = cls(**kwargs)
+            db.session.add(obj)
+            db.session.commit()
+            return obj
+        except Exception as e:
+            db.session.rollback()
+            raise e
 
     @classmethod
     def get_by_id(cls, item_id):
-        return db.session.get(cls, item_id)
+        """
+        取得單筆記錄
+        :param item_id: 資料的主鍵 ID
+        :return: 模型實例 (找不到時為 None)
+        """
+        try:
+            return db.session.get(cls, item_id)
+        except Exception as e:
+            raise e
 
     @classmethod
     def get_all(cls):
-        return cls.query.all()
+        """
+        取得所有記錄
+        :return: 包含所有記錄的列表
+        """
+        try:
+            return cls.query.all()
+        except Exception as e:
+            raise e
 
     def update(self, **kwargs):
-        for key, value in kwargs.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
-        db.session.commit()
+        """
+        更新記錄
+        :param kwargs: 欲更改的欄位與對應新值
+        """
+        try:
+            for key, value in kwargs.items():
+                if hasattr(self, key):
+                    setattr(self, key, value)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            raise e
 
     def delete(self):
-        db.session.delete(self)
-        db.session.commit()
+        """
+        刪除記錄
+        """
+        try:
+            db.session.delete(self)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            raise e
 
 class User(BaseModel, db.Model):
     __tablename__ = 'users'
@@ -62,6 +101,9 @@ class Transaction(BaseModel, db.Model):
     date = db.Column(db.Date, nullable=False)
     description = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    account = db.relationship('Account', foreign_keys=[account_id], backref='transactions_from', lazy=True)
+    to_account = db.relationship('Account', foreign_keys=[to_account_id], backref='transactions_to', lazy=True)
 
 class Budget(BaseModel, db.Model):
     __tablename__ = 'budgets'
